@@ -1,6 +1,5 @@
 # cookiecutter-odin
 odin's cookiecutter template
 
-## templates in branches
+## templates for python
 
-see you in branches

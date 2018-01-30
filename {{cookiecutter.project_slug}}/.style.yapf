@@ -1,0 +1,5 @@
+[style]
+# the `google` style
+# based_on_style = pep8
+based_on_style = chromium
+indent_width = 4
