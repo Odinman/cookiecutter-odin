@@ -1,94 +1,60 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
-.DEFAULT_GOAL := help
-define BROWSER_PYSCRIPT
-import os, webbrowser, sys
-try:
-	from urllib import pathname2url
-except:
-	from urllib.request import pathname2url
+.PHONY: build build-alpine clean test help default
 
-webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
-endef
-export BROWSER_PYSCRIPT
+BIN_NAME={{cookiecutter.app_name}}
 
-define PRINT_HELP_PYSCRIPT
-import re, sys
+VERSION := $(shell grep "const Version " version.go | sed -E 's/.*"(.+)"$$/\1/')
+GIT_COMMIT=$(shell git rev-parse HEAD)
+GIT_DIRTY=$(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)
+IMAGE_NAME := "{{cookiecutter.docker_hub_username}}/{{cookiecutter.app_name}}"
 
-for line in sys.stdin:
-	match = re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line)
-	if match:
-		target, help = match.groups()
-		print("%-20s %s" % (target, help))
-endef
-export PRINT_HELP_PYSCRIPT
-BROWSER := python -c "$$BROWSER_PYSCRIPT"
+default: test
 
 help:
-	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
+	@echo 'Management commands for {{cookiecutter.app_name}}:'
+	@echo
+	@echo 'Usage:'
+	@echo '    make build           Compile the project.'
+	@echo '    make get-deps        runs glide install, mostly used for ci.'
+	{% if cookiecutter.use_docker == "y" %}@echo '    make build-alpine    Compile optimized for alpine linux.'
+	@echo '    make package         Build final docker image with just the go binary inside'
+	@echo '    make tag             Tag image created by package with latest, git commit and version'
+	@echo '    make test            Run tests on a compiled project.'
+	@echo '    make push            Push tagged images to registry'{% endif %}
+	@echo '    make clean           Clean the directory tree.'
+	@echo
 
-clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and Python artifacts
+build:
+	@echo "building ${BIN_NAME} ${VERSION}"
+	@echo "GOPATH=${GOPATH}"
+	go build -ldflags "-X main.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X main.VersionPrerelease=DEV" -o bin/${BIN_NAME}
 
+get-deps:
+	glide install
+{% if cookiecutter.use_docker == "y" %}
+build-alpine:
+	@echo "building ${BIN_NAME} ${VERSION}"
+	@echo "GOPATH=${GOPATH}"
+	go build -ldflags '-w -linkmode external -extldflags "-static" -X main.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X main.VersionPrerelease=VersionPrerelease=RC' -o bin/${BIN_NAME}
 
-clean-build: ## remove build artifacts
-	rm -fr build/
-	rm -fr dist/
-	rm -fr .eggs/
-	find . -name '*.egg-info' -exec rm -fr {} +
-	find . -name '*.egg' -exec rm -f {} +
+package:
+	@echo "building image ${BIN_NAME} ${VERSION} $(GIT_COMMIT)"
+	docker build --build-arg VERSION=${VERSION} --build-arg GIT_COMMIT=$(GIT_COMMIT) -t $(IMAGE_NAME):local .
 
-clean-pyc: ## remove Python file artifacts
-	find . -name '*.pyc' -exec rm -f {} +
-	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
+tag:
+	@echo "Tagging: latest ${VERSION} $(GIT_COMMIT)"
+	docker tag $(IMAGE_NAME):local $(IMAGE_NAME):$(GIT_COMMIT)
+	docker tag $(IMAGE_NAME):local $(IMAGE_NAME):${VERSION}
+	docker tag $(IMAGE_NAME):local $(IMAGE_NAME):latest
 
-clean-test: ## remove test and coverage artifacts
-	rm -fr .tox/
-	rm -f .coverage
-	rm -fr htmlcov/
+push: tag
+	@echo "Pushing docker image to registry: latest ${VERSION} $(GIT_COMMIT)"
+	docker push $(IMAGE_NAME):$(GIT_COMMIT)
+	docker push $(IMAGE_NAME):${VERSION}
+	docker push $(IMAGE_NAME):latest
+{% endif %}
+clean:
+	@test ! -e bin/${BIN_NAME} || rm bin/${BIN_NAME}
 
-lint: ## check style with flake8
-	flake8 {{ cookiecutter.project_slug }} tests
+test:
+	go test $(glide nv)
 
-test: ## run tests quickly with the default Python
-	{% if cookiecutter.use_pytest == 'y' -%}
-		py.test
-	{% else %}
-		python setup.py test
-	{%- endif %}
-
-test-all: ## run tests on every Python version with tox
-	tox
-
-coverage: ## check code coverage quickly with the default Python
-{%- if cookiecutter.use_pytest == 'y' %}
-	coverage run --source {{ cookiecutter.project_slug }} -m pytest
-{%- else %}
-	coverage run --source {{ cookiecutter.project_slug }} setup.py test
-{%- endif %}
-	coverage report -m
-	coverage html
-	$(BROWSER) htmlcov/index.html
-
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/{{ cookiecutter.project_slug }}.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ {{ cookiecutter.project_slug }}
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
-
-servedocs: docs ## compile the docs watching for changes
-	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
-
-release: clean ## package and upload a release
-	python setup.py sdist upload
-	python setup.py bdist_wheel upload
-
-dist: clean ## builds source and wheel package
-	python setup.py sdist
-	python setup.py bdist_wheel
-	ls -l dist
-
-install: clean ## install the package to the active Python's site-packages
-	python setup.py install

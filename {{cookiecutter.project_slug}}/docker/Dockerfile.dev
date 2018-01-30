@@ -1,0 +1,9 @@
+FROM docker.for.mac.localhost:5001/gladsheim/alpine:withtz
+EXPOSE 8888
+
+ENV GODEBUG=netdns=go
+
+ADD release/{{ cookiecutter.project_slug }} /bin
+ADD conf/config.dev.json /bin/{{ cookiecutter.project_slug }}.json
+
+ENTRYPOINT ["/bin/{{ cookiecutter.project_slug }}"]

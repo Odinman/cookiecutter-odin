@@ -1,0 +1,40 @@
+{
+  "debug": true,
+  "dockerize": true,
+  "daemonize": false,
+  "enable_cache": true,
+  "proc_name": "ac",
+  "port": "8888",
+  "version": "0.1.0",
+  "time_zone": "Asia/Shanghai",
+  "access": {
+    "path": "/logs/ac.log",
+    "topic": "ac"
+  },
+  "session": {
+    "prefix": "auth",
+    "key": "gladsheim",
+    "life": 2592000,
+    "path": "/",
+    "domain": "127.0.0.1",
+    "redis": [
+      {"conn":"127.0.0.1:6379","db":"0"}
+    ]
+  },
+  "logs": [
+    {
+      "type": "console",
+      "tag": "wgo",
+      "format": "%T%E[%C] %M",
+      "level": "DEBUG|INFO|WARNING|ERROR|FATAL"
+    }
+  ],
+  "ac":{
+    "db": {
+      "db": "root:Odin@1234@tcp(127.0.0.1:3389)/ac?charset=utf8&loc=Asia%2FShanghai"
+    }
+  },
+  "portals": {
+    "*":[]
+  }
+}

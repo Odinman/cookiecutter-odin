@@ -1,0 +1,103 @@
+worksp{{ cookiecutter.project_slug }}e:
+  base: "/drone"
+  path: "src/{{ cookiecutter.project_slug }}"
+
+clone:
+  git:
+    image: plugins/git
+    tags: true
+    depth: 50
+
+pipeline:
+  build:
+    image: registry.cn-hangzhou.aliyuncs.com/gladsheim/wgo:latest
+    pull: true
+    environment:
+      - CGO_ENABLED=0
+      - GOOS=linux
+      - GOARCH=amd64
+    commands:
+      - sh .{{ cookiecutter.project_slug }}.sh
+    when:
+      event: [ push, tag ]
+
+  build_local:
+    image: 127.0.0.1:5001/arch/wgo:latest
+    pull: true
+    environment:
+      - CGO_ENABLED=0
+      - GOOS=linux
+      - GOARCH=amd64
+    commands:
+      - sh .{{ cookiecutter.project_slug }}.sh
+    when:
+      event: [ local ]
+
+  m{{ cookiecutter.project_slug }}_local:
+    image: plugins/docker
+    registry: docker.for.m{{ cookiecutter.project_slug }}.localhost:5001
+    repo: docker.for.m{{ cookiecutter.project_slug }}.localhost:5001/gladsheim/{{ cookiecutter.project_slug }}
+    insecure: true
+    tags: [ local ]
+    dockerfile: docker/Dockerfile.dev
+    when:
+      event: [ local ]
+
+  publish:
+    image: plugins/docker
+    registry: registry.cn-hangzhou.aliyuncs.com
+    repo: registry.cn-hangzhou.aliyuncs.com/gladsheim/{{ cookiecutter.project_slug }}
+    secrets: [ docker_username, docker_password ]
+    tags: [ latest, prod ]
+    dockerfile: docker/Dockerfile
+    when:
+      event: [ push, tag ]
+
+  prepare_deploy:
+    image: appleboy/drone-scp
+    host: 172.16.32.49
+    username: deploy
+    volumes:
+      - /home/deploy/drone_rsa:/root/ssh/drone_rsa
+    key_path: /root/ssh/drone_rsa
+    source:
+      - docker/prod.env
+      - docker/docker-compose.yml
+    target: /services/deploy/{{ cookiecutter.project_slug }}
+    when:
+      local: false
+      status: [ success ]
+
+  deploy:
+    image: appleboy/drone-ssh
+    host: 172.16.32.49
+    username: deploy
+    volumes:
+      - /home/deploy/drone_rsa:/root/ssh/drone_rsa
+    key_path: /root/ssh/drone_rsa
+    secrets: [ docker_username, docker_password ]
+    envs: [ docker_username, docker_password ]
+    script:
+      - echo "now we deploy {{ cookiecutter.project_slug }}"
+      - docker login --username=$DOCKER_USERNAME registry.cn-hangzhou.aliyuncs.com -p $DOCKER_PASSWORD
+      - docker-compose -f /services/deploy/{{ cookiecutter.project_slug }}/docker/docker-compose.yml pull {{ cookiecutter.project_slug }}
+      - docker-compose -f /services/deploy/{{ cookiecutter.project_slug }}/docker/docker-compose.yml up -d --no-deps {{ cookiecutter.project_slug }}
+      - "rmimages=$(docker images -f \"dangling=true\" -q); if [ -n \"$rmimages\" ]; then echo \"delete images: $rmimages\"; docker rmi $rmimages; else echo \"not need delete dangling images\"; fi"
+    when:
+      local: false
+      status: [ success ]
+
+  sl{{ cookiecutter.project_slug }}k:
+    image: plugins/sl{{ cookiecutter.project_slug }}k
+    webhook: https://hooks.sl{{ cookiecutter.project_slug }}k.com/services/T4FSLEV5M/B7K7HSJCB/NoEXIqznukEfd87W5Zfi3UqK
+    channel: dev
+    username: "AC(Account Center)"
+    template: >
+      {{#success build.status}}
+      build {{build.number}} succeeded. Good job.
+      {{else}}
+      build {{build.number}} failed. Fix me please.
+      {{/success}}
+    when:
+      status: [ success, failure ]
+      local: false

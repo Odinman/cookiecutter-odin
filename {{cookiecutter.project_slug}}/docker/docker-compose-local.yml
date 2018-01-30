@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  {{ cookiecutter.project_slug }}:
+    image: 127.0.0.1:5001/gladsheim/{{ cookiecutter.project_slug }}:local
+    volumes:
+      - /Users/Odin/logs/go:/logs
+    ports:
+      - "8888:8888"
+    env_file:
+      - ./local.env

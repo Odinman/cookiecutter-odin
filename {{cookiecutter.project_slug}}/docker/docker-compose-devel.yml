@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  {{ cookiecutter.project_slug }}:
+    image: registry.cn-hangzhou.aliyuncs.com/gladsheim/{{ cookiecutter.project_slug }}:devel
+    volumes:
+      - /Users/Odin/logs/go:/logs
+    ports:
+      - "8888:8888"
+    env_file:
+      - ./dev.env

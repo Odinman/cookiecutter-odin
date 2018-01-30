@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  {{ cookiecutter.project_slug }}:
+    image: registry.cn-hangzhou.aliyuncs.com/gladsheim/{{ cookiecutter.project_slug }}:latest
+    volumes:
+      - /services/logs/go:/logs
+    ports:
+      - "8888:8888"
+    env_file:
+      - ./prod.env
+    restart: always

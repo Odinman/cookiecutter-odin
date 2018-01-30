@@ -1,0 +1,34 @@
+{
+  "debug": true,
+  "dockerize": true,
+  "daemonize": false,
+  "enable_cache": true,
+  "proc_name": "{{ cookiecutter.project_slug }}",
+  "port": "8888",
+  "version": "0.1.0",
+  "time_zone": "Asia/Shanghai",
+  "access": {
+    "path": "/logs/{{ cookiecutter.project_slug }}.log",
+    "topic": "{{ cookiecutter.project_slug }}"
+  },
+  "session": {
+    "prefix": "auth",
+    "key": "gladsheim",
+    "life": 2592000,
+    "path": "/",
+    "domain": ".gladsheim.cn",
+    "redis": [
+      {"conn":"127.0.0.1:6379","db":"0"}
+    ]
+  },
+  "logs": [
+    {
+      "type": "console",
+      "tag": "wgo",
+      "format": "%T%E[%C] %M",
+      "level": "DEBUG|INFO|WARNING|ERROR|FATAL"
+    }
+  ],
+  "{{ cookiecutter.project_slug }}":{
+  }
+}
