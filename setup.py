@@ -1,15 +1,20 @@
 # !/usr/bin/env python
 
+"""
+setup
+"""
+
 from distutils.core import setup
+
 setup(
-    name='cookiecutter-pypackage',
+    name='cookiecutter-odin#python',
     packages=[],
     version='0.1.0',
     description='Cookiecutter template for a Python package',
-    author='Audrey Roy Greenfeld',
+    author='Odin Lee',
     license='BSD',
     author_email='aroy@alum.mit.edu',
-    url='https://github.com/audreyr/cookiecutter-pypackage',
+    url='https://github.com/Odinman/cookiecutter-odin#python',
     keywords=['cookiecutter', 'template', 'package', ],
     classifiers=[
         'Development Status :: 4 - Beta',
