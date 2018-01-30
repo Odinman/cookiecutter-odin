@@ -33,10 +33,10 @@ pipeline:
     when:
       event: [ local ]
 
-  m{{ cookiecutter.project_slug }}_local:
+  mac_local:
     image: plugins/docker
-    registry: docker.for.m{{ cookiecutter.project_slug }}.localhost:5001
-    repo: docker.for.m{{ cookiecutter.project_slug }}.localhost:5001/gladsheim/{{ cookiecutter.project_slug }}
+    registry: docker.for.mac.localhost:5001
+    repo: docker.for.mac.localhost:5001/gladsheim/{{ cookiecutter.project_slug }}
     insecure: true
     tags: [ local ]
     dockerfile: docker/Dockerfile.dev
@@ -86,18 +86,3 @@ pipeline:
     when:
       local: false
       status: [ success ]
-
-  sl{{ cookiecutter.project_slug }}k:
-    image: plugins/sl{{ cookiecutter.project_slug }}k
-    webhook: https://hooks.sl{{ cookiecutter.project_slug }}k.com/services/T4FSLEV5M/B7K7HSJCB/NoEXIqznukEfd87W5Zfi3UqK
-    channel: dev
-    username: "AC(Account Center)"
-    template: >
-      {{#success build.status}}
-      build {{build.number}} succeeded. Good job.
-      {{else}}
-      build {{build.number}} failed. Fix me please.
-      {{/success}}
-    when:
-      status: [ success, failure ]
-      local: false
