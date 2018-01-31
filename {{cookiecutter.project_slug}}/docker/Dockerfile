@@ -1,5 +1,5 @@
 FROM registry.cn-hangzhou.aliyuncs.com/gladsheim/alpine:withtz
-EXPOSE 8888
+EXPOSE {{ cookiecutter.port }}
 
 ENV GODEBUG=netdns=go
 

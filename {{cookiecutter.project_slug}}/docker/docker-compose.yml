@@ -6,7 +6,7 @@ services:
     volumes:
       - /services/logs/go:/logs
     ports:
-      - "8888:8888"
+      - "{{ cookiecutter.port }}:{{ cookiecutter.port }}"
     env_file:
       - ./prod.env
     restart: always

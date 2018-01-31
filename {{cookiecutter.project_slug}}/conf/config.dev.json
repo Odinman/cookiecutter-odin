@@ -4,7 +4,7 @@
   "daemonize": false,
   "enable_cache": true,
   "proc_name": "{{ cookiecutter.project_slug }}",
-  "port": "8888",
+  "port": "{{ cookiecutter.port }}",
   "version": "0.1.0",
   "time_zone": "Asia/Shanghai",
   "access": {

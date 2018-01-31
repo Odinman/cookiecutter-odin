@@ -1,5 +1,5 @@
 FROM docker.for.mac.localhost:5001/gladsheim/alpine:withtz
-EXPOSE 8888
+EXPOSE {{ cookiecutter.port }}
 
 ENV GODEBUG=netdns=go
 

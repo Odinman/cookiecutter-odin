@@ -6,6 +6,6 @@ services:
     volumes:
       - /Users/Odin/logs/go:/logs
     ports:
-      - "8888:8888"
+      - "{{ cookiecutter.port }}:{{ cookiecutter.port }}"
     env_file:
       - ./local.env
