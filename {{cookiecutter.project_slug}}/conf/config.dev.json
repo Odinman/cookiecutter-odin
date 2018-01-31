@@ -3,13 +3,13 @@
   "dockerize": true,
   "daemonize": false,
   "enable_cache": true,
-  "proc_name": "ac",
+  "proc_name": "{{ cookiecutter.project_slug }}",
   "port": "8888",
   "version": "0.1.0",
   "time_zone": "Asia/Shanghai",
   "access": {
-    "path": "/logs/ac.log",
-    "topic": "ac"
+    "path": "/logs/{{ cookiecutter.project_slug }}.log",
+    "topic": "{{ cookiecutter.project_slug }}"
   },
   "session": {
     "prefix": "auth",
@@ -29,12 +29,6 @@
       "level": "DEBUG|INFO|WARNING|ERROR|FATAL"
     }
   ],
-  "ac":{
-    "db": {
-      "db": "root:Odin@1234@tcp(127.0.0.1:3389)/ac?charset=utf8&loc=Asia%2FShanghai"
-    }
-  },
-  "portals": {
-    "*":[]
+  "{{ cookiecutter.project_slug }}":{
   }
 }
